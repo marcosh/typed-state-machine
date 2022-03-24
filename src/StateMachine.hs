@@ -40,17 +40,20 @@ class AllowedTransition (topology :: Topology vertex) (initial :: vertex) (final
 -- | We create an instance of `AllowedTransition topology initial final` whenever `final` is adjacent to `initial` according to the `topology` of allowed transitions
 instance (LookupContains transitions initial final) => AllowedTransition ('MkTopology initialPosition transitions) initial final
 
--- instance (Maybe_ 'False (ElemSym1 final) (Lookup initial transitions) ~ 'True) => AllowedTransition ('MkTopology initialPosition transitions) initial final
-
 -- State machines
 
-data ActionResult topology state initialTag output where
-  MkActionResult :: AllowedTransition topology initialTag finalTag => state finalTag -> output -> ActionResult topology state initialTag output
-
+-- | A `StateMachine topology state input output` describes a state machine with state of type `state tag`, input of type `input` and output of type `output`, such that
+--   the allowed transition are described by the topology `topology tag`.
+--   A state machine is composed by an `initialState` and an `action`, which defines the `output` and the new `state` given the current `state` and an `input`
 data StateMachine (topology :: Topology tag) (state :: tag -> Type) (input :: Type) (output :: Type) = MkStateMachine
   { initialState :: state (InitialPosition topology)
   , action       :: forall initialTag. state initialTag -> input -> ActionResult topology state initialTag output
   }
+
+-- | The result of an action of the state machine.
+--   An `ActionResult topology state initialTag output` contains an `output` and a `state finalTag`, where the transition from `initialTag` to `finalTag` is allowed by the machine `topology`
+data ActionResult (topology :: Topology tag) (state :: tag -> Type) (initialTag :: tag) (output :: Type) where
+  MkActionResult :: AllowedTransition topology initialTag finalTag => state finalTag -> output -> ActionResult topology state initialTag output
 
 -- A trivial example
 
@@ -164,3 +167,9 @@ door = MkStateMachine
         LockLock   -> MkActionResult SIsLockLocked LockNoOp
         LockUnlock -> MkActionResult SIsLockClosed LockUnlocked
   }
+
+-- Things which are not completely satisfactory at the moment:
+-- - topology contains an initial position and state machine contains an initial state; this feels like a duplication
+-- - in the topology I need to manually define that I may stay still
+-- - a state machine has a `state` parameter, which might possibly be removed
+-- - if the tagging function is trivial, we still need to define both types
