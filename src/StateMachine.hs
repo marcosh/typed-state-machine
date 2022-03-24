@@ -18,14 +18,7 @@ import Data.Kind (Type)
 
 -- | A `Topology` is a description of the topology of a state machine
 --   It contains an `initialPosition` and the collection of allowed transitions
-data Topology (vertex :: Type) = MkTopology
-  { initialPosition :: vertex
-  , edges :: [(vertex, [vertex])]
-  }
-
--- | The `InitialPosition` class allows to lift the information regarding the initial position to the type level
-type family InitialPosition (topology :: Topology vertex) :: vertex where
-  InitialPosition ('MkTopology initialPosition edges) = initialPosition
+newtype Topology (vertex :: Type) = MkTopology { edges :: [(vertex, [vertex])] }
 
 class LookupContains (map :: [(a, [b])]) (key :: a) (value :: b)
 
@@ -38,7 +31,7 @@ instance LookupContains map a b => LookupContains (x : map) a b
 class AllowedTransition (topology :: Topology vertex) (initial :: vertex) (final :: vertex)
 
 -- | We create an instance of `AllowedTransition topology initial final` whenever `final` is adjacent to `initial` according to the `topology` of allowed transitions
-instance (LookupContains transitions initial final) => AllowedTransition ('MkTopology initialPosition transitions) initial final
+instance (LookupContains transitions initial final) => AllowedTransition ('MkTopology transitions) initial final
 
 -- State machines
 
@@ -46,9 +39,12 @@ instance (LookupContains transitions initial final) => AllowedTransition ('MkTop
 --   the allowed transition are described by the topology `topology tag`.
 --   A state machine is composed by an `initialState` and an `action`, which defines the `output` and the new `state` given the current `state` and an `input`
 data StateMachine (topology :: Topology tag) (state :: tag -> Type) (input :: Type) (output :: Type) = MkStateMachine
-  { initialState :: state (InitialPosition topology)
+  { initialState :: InitialState state
   , action       :: forall initialTag. state initialTag -> input -> ActionResult topology state initialTag output
   }
+
+data InitialState (state :: tag -> Type) where
+  MkInitialState :: state tag -> InitialState state
 
 -- | The result of an action of the state machine.
 --   An `ActionResult topology state initialTag output` contains an `output` and a `state finalTag`, where the transition from `initialTag` to `finalTag` is allowed by the machine `topology`
@@ -60,9 +56,7 @@ data ActionResult (topology :: Topology tag) (state :: tag -> Type) (initialTag 
 data State
   = OnlyValidState
 
-type TrivialTopology = 'MkTopology
-  'OnlyValidState
-  '[ '( 'OnlyValidState, '[ 'OnlyValidState ] ) ]
+type TrivialTopology = 'MkTopology '[ '( 'OnlyValidState, '[ 'OnlyValidState ] ) ]
 
 data Input = MkInput
 
@@ -73,7 +67,7 @@ data SState state where
 
 constantMachine :: StateMachine TrivialTopology SState Input Output
 constantMachine = MkStateMachine
-  { initialState = SOnlyValidState
+  { initialState = MkInitialState SOnlyValidState
   , action       = \SOnlyValidState _ -> MkActionResult SOnlyValidState MkOutput
   }
 
@@ -84,7 +78,6 @@ data DoorState
   | IsClosed
 
 type DoorTopology = 'MkTopology
-  'IsClosed
   '[ '( 'IsClosed, '[ 'IsClosed, 'IsOpen ] )
    , '( 'IsOpen  , '[ 'IsClosed, 'IsOpen ] )
    ]
@@ -104,7 +97,7 @@ data SDoorState a where
 
 doorMachine :: StateMachine DoorTopology SDoorState DoorCommand DoorEvent
 doorMachine = MkStateMachine
-  { initialState = SIsClosed
+  { initialState = MkInitialState SIsClosed
   , action       =
     \case
       SIsOpen -> \case
@@ -123,7 +116,6 @@ data LockDoorState
   | IsLockLocked
 
 type LockDoorTopology = 'MkTopology
-  'IsLockClosed
   '[ '( 'IsLockOpen  , '[ 'IsLockOpen  , 'IsLockClosed ])
    , '( 'IsLockClosed, '[ 'IsLockClosed, 'IsLockOpen, 'IsLockLocked ])
    , '( 'IsLockLocked, '[ 'IsLockLocked, 'IsLockClosed ])
@@ -149,7 +141,7 @@ data SLockDoorState state where
 
 door :: StateMachine LockDoorTopology SLockDoorState LockDoorCommand LockDoorEvent
 door = MkStateMachine
-  { initialState = SIsLockClosed
+  { initialState = MkInitialState SIsLockClosed
   , action       = \case
       SIsLockOpen   -> \case
         LockOpen   -> MkActionResult SIsLockOpen   LockNoOp
@@ -169,7 +161,6 @@ door = MkStateMachine
   }
 
 -- Things which are not completely satisfactory at the moment:
--- - topology contains an initial position and state machine contains an initial state; this feels like a duplication
 -- - in the topology I need to manually define that I may stay still
 -- - a state machine has a `state` parameter, which might possibly be removed
 -- - if the tagging function is trivial, we still need to define both types
