@@ -161,6 +161,6 @@ door = MkStateMachine
   }
 
 -- Things which are not completely satisfactory at the moment:
--- - in the topology I need to manually define that I may stay still
+-- - in the topology I need to manually define that I might not change state
 -- - a state machine has a `state` parameter, which might possibly be removed
 -- - if the tagging function is trivial, we still need to define both types
