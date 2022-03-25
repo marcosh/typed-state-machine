@@ -6,19 +6,31 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module StateMachine where
 
 -- base
 import Data.Kind (Type)
 
+-- singletons-base
+import Data.Singletons.Base.TH
+
 -- see http://marcosh.github.io/post/2021/10/27/ddd-state-machines.html
 
 -- | A `Topology` is a description of the topology of a state machine
 --   It contains an `initialPosition` and the collection of allowed transitions
-newtype Topology (vertex :: Type) = MkTopology { edges :: [(vertex, [vertex])] }
+$(singletons [d|
+
+  newtype Topology (vertex :: Type) = MkTopology { edges :: [(vertex, [vertex])] }
+
+  |])
 
 class LookupContains (map :: [(a, [b])]) (key :: a) (value :: b)
 
@@ -139,8 +151,8 @@ data SLockDoorState state where
   SIsLockClosed :: SLockDoorState 'IsLockClosed
   SIsLockLocked :: SLockDoorState 'IsLockLocked
 
-door :: StateMachine LockDoorTopology SLockDoorState LockDoorCommand LockDoorEvent
-door = MkStateMachine
+lockDoorMachine :: StateMachine LockDoorTopology SLockDoorState LockDoorCommand LockDoorEvent
+lockDoorMachine = MkStateMachine
   { initialState = MkInitialState SIsLockClosed
   , action       = \case
       SIsLockOpen   -> \case
@@ -160,7 +172,61 @@ door = MkStateMachine
         LockUnlock -> MkActionResult SIsLockClosed LockUnlocked
   }
 
+-- The same example using singletons
+
+$(singletons [d|
+
+  data SingLockDoorState
+    = SingIsLockOpen
+    | SingIsLockClosed
+    | SingIsLockLocked
+
+  singLockDoorTopology :: Topology SingLockDoorState
+  singLockDoorTopology = MkTopology
+    [ (SingIsLockOpen  , [SingIsLockOpen, SingIsLockClosed])
+    , (SingIsLockClosed, [SingIsLockClosed, SingIsLockOpen, SingIsLockLocked])
+    , (SingIsLockLocked, [SingIsLockLocked, SingIsLockClosed])
+    ]
+
+  |])
+
+data SingLockDoorCommand
+  = SingLockOpen
+  | SingLockClose
+  | SingLockLock
+  | SingLockUnlock
+
+data SingLockDoorEvent
+  = SingLockNoOp
+  | SingLockOpened
+  | SingLockClosed
+  | SingLockLocked
+  | SingLockUnlocked
+
+singLockDoorMachine :: StateMachine SingLockDoorTopology SSingLockDoorState SingLockDoorCommand SingLockDoorEvent
+singLockDoorMachine =  MkStateMachine
+  { initialState = MkInitialState SSingIsLockClosed
+  , action       = \case
+      SSingIsLockOpen   -> \case
+        SingLockOpen   -> MkActionResult SSingIsLockOpen   SingLockNoOp
+        SingLockClose  -> MkActionResult SSingIsLockClosed SingLockClosed
+        SingLockLock   -> MkActionResult SSingIsLockOpen   SingLockNoOp
+        SingLockUnlock -> MkActionResult SSingIsLockOpen   SingLockNoOp
+      SSingIsLockClosed -> \case
+        SingLockOpen   -> MkActionResult SSingIsLockOpen   SingLockOpened
+        SingLockClose  -> MkActionResult SSingIsLockClosed SingLockNoOp
+        SingLockLock   -> MkActionResult SSingIsLockLocked SingLockLocked
+        SingLockUnlock -> MkActionResult SSingIsLockClosed SingLockNoOp
+      SSingIsLockLocked -> \case
+        SingLockOpen   -> MkActionResult SSingIsLockLocked SingLockNoOp
+        SingLockClose  -> MkActionResult SSingIsLockLocked SingLockNoOp
+        SingLockLock   -> MkActionResult SSingIsLockLocked SingLockNoOp
+        SingLockUnlock -> MkActionResult SSingIsLockClosed SingLockUnlocked
+  }
+
+
 -- Things which are not completely satisfactory at the moment:
 -- - in the topology I need to manually define that I might not change state
 -- - a state machine has a `state` parameter, which might possibly be removed
--- - if the tagging function is trivial, we still need to define both types
+-- - is there a way to avoid defining `LockDoorState` and `SLockDoorState` when not using singletons?
+-- - let inputs and outputs depend on state?
