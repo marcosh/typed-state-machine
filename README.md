@@ -14,3 +14,11 @@ The aims of this projects are:
 - composable: state machines are extremely composable. They could be sequenced and run in parallel or alternatively. This project strives to make this composability straightforward;
 
 - information at the type level: we would like to store relevant information about our state machine at the type level, so that we could statically analyze it and render it in a user-friendly way.
+
+## Possible improvements
+
+- [] in the topology I need to manually define that I might not change stat
+- [] a state machine has a `state` parameter, which might possibly be remove
+- [] is there a way to avoid defining `LockDoorState` and `SLockDoorState` when not using singletons
+- [] let inputs and outputs depend on state
+- [] generate a graph from a state machine type

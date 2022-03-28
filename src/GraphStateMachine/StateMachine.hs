@@ -60,9 +60,3 @@ data InitialState (state :: tag -> Type) where
 --   An `ActionResult topology state initialTag output` contains an `output` and a `state finalTag`, where the transition from `initialTag` to `finalTag` is allowed by the machine `topology`
 data ActionResult (topology :: Topology tag) (state :: tag -> Type) (initialTag :: tag) (output :: Type) where
   MkActionResult :: AllowedTransition topology initialTag finalTag => state finalTag -> output -> ActionResult topology state initialTag output
-
--- Things which are not completely satisfactory at the moment:
--- - in the topology I need to manually define that I might not change state
--- - a state machine has a `state` parameter, which might possibly be removed
--- - is there a way to avoid defining `LockDoorState` and `SLockDoorState` when not using singletons?
--- - let inputs and outputs depend on state?
