@@ -1,14 +1,23 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 
 module GraphStateMachine.Door where
 
+import GraphStateMachine.Render
 import GraphStateMachine.StateMachine
 
 data DoorState
   = IsOpen
   | IsClosed
+  deriving stock (Eq, Show)
+
+instance ToValue 'IsOpen where
+  toValue = IsOpen
+
+instance ToValue 'IsClosed where
+  toValue = IsClosed
 
 type DoorTopology = 'MkTopology
   '[ '( 'IsClosed, '[ 'IsClosed, 'IsOpen ] )

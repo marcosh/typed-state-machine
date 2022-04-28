@@ -23,7 +23,7 @@ import Data.Singletons.Base.TH
 -- see http://marcosh.github.io/post/2021/10/27/ddd-state-machines.html
 
 -- | A `Topology` is a description of the topology of a state machine
---   It contains an `initialPosition` and the collection of allowed transitions
+--   It contains the collection of allowed transitions
 $(singletons [d|
 
   newtype Topology (vertex :: Type) = MkTopology { edges :: [(vertex, [vertex])] }

@@ -1,15 +1,27 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 
 module GraphStateMachine.LockDoor where
 
+import GraphStateMachine.Render
 import GraphStateMachine.StateMachine
 
 data LockDoorState
   = IsLockOpen
   | IsLockClosed
   | IsLockLocked
+  deriving stock (Eq, Show)
+
+instance ToValue 'IsLockOpen where
+  toValue = IsLockOpen
+
+instance ToValue 'IsLockClosed where
+  toValue = IsLockClosed
+
+instance ToValue 'IsLockLocked where
+  toValue = IsLockLocked
 
 type LockDoorTopology = 'MkTopology
   '[ '( 'IsLockOpen  , '[ 'IsLockOpen  , 'IsLockClosed ])
