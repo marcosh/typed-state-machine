@@ -1,0 +1,6 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "typed-state-machine:lib"
+    - path: "./spec"
+      component: "typed-state-machine:test:typed-state-machine-spec"
