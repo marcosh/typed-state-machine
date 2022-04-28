@@ -16,12 +16,12 @@ import Data.Singletons.Base.TH
 
 $(singletons [d|
 
-  data SingLockDoorState
+  data SingLockDoorTag
     = SingIsLockOpen
     | SingIsLockClosed
     | SingIsLockLocked
 
-  singLockDoorTopology :: Topology SingLockDoorState
+  singLockDoorTopology :: Topology SingLockDoorTag
   singLockDoorTopology = MkTopology
     [ (SingIsLockOpen  , [SingIsLockOpen, SingIsLockClosed])
     , (SingIsLockClosed, [SingIsLockClosed, SingIsLockOpen, SingIsLockLocked])
@@ -43,7 +43,7 @@ data SingLockDoorEvent
   | SingLockLocked
   | SingLockUnlocked
 
-singLockDoorMachine :: StateMachine SingLockDoorTopology SSingLockDoorState SingLockDoorCommand SingLockDoorEvent
+singLockDoorMachine :: StateMachine SingLockDoorTopology SSingLockDoorTag SingLockDoorCommand SingLockDoorEvent
 singLockDoorMachine =  MkStateMachine
   { initialState = MkInitialState SSingIsLockClosed
   , action       = \case

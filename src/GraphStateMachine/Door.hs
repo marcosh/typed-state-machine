@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
 
 module GraphStateMachine.Door where
@@ -8,7 +9,7 @@ module GraphStateMachine.Door where
 import GraphStateMachine.Render
 import GraphStateMachine.StateMachine
 
-data DoorState
+data DoorTag
   = IsOpen
   | IsClosed
   deriving stock (Eq, Show)
@@ -33,11 +34,11 @@ data DoorEvent
   | Opened
   | Closed
 
-data SDoorState a where
-  SIsOpen   :: SDoorState 'IsOpen
-  SIsClosed :: SDoorState 'IsClosed
+data DoorState (a :: DoorTag) where
+  SIsOpen   :: DoorState 'IsOpen
+  SIsClosed :: DoorState 'IsClosed
 
-doorMachine :: StateMachine DoorTopology SDoorState DoorCommand DoorEvent
+doorMachine :: StateMachine DoorTopology DoorState DoorCommand DoorEvent
 doorMachine = MkStateMachine
   { initialState = MkInitialState SIsClosed
   , action       =

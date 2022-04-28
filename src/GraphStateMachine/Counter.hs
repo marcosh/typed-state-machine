@@ -1,13 +1,14 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 
 module GraphStateMachine.Counter where
 
 import GraphStateMachine.StateMachine
 
-data CounterTag = CounterTag
+data CounterTag = OnlyCounterTag
 
-type CounterTopology = 'MkTopology '[ '( 'CounterTag, '[ 'CounterTag ] ) ]
+type CounterTopology = 'MkTopology '[ '( 'OnlyCounterTag, '[ 'OnlyCounterTag ] ) ]
 
 data Input
   = Increase
@@ -15,8 +16,8 @@ data Input
 
 data Output = Output
 
-data CounterState state where
-  CounterState :: Int -> CounterState 'CounterTag
+data CounterState (state :: CounterTag) where
+  CounterState :: Int -> CounterState 'OnlyCounterTag
 
 counterMachine :: StateMachine CounterTopology CounterState Input Output
 counterMachine = MkStateMachine

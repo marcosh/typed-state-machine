@@ -1,27 +1,28 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 
 module GraphStateMachine.OneStateExample where
 
 import GraphStateMachine.Render
 import GraphStateMachine.StateMachine
 
-data State
-  = OnlyValidState
+data Tag
+  = OnlyValidTag
   deriving stock (Eq, Show)
 
-instance ToValue 'OnlyValidState where
-  toValue = OnlyValidState
+instance ToValue 'OnlyValidTag where
+  toValue = OnlyValidTag
 
-type TrivialTopology = 'MkTopology '[ '( 'OnlyValidState, '[ 'OnlyValidState ] ) ]
+type TrivialTopology = 'MkTopology '[ '( 'OnlyValidTag, '[ 'OnlyValidTag ] ) ]
 
 data Input = MkInput
 
 data Output = MkOutput
 
-data SState state where
-  SOnlyValidState :: SState 'OnlyValidState
+data SState (state :: Tag) where
+  SOnlyValidState :: SState 'OnlyValidTag
 
 constantMachine :: StateMachine TrivialTopology SState Input Output
 constantMachine = MkStateMachine

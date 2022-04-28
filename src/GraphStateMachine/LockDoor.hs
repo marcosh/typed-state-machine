@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
 
 module GraphStateMachine.LockDoor where
@@ -8,7 +9,7 @@ module GraphStateMachine.LockDoor where
 import GraphStateMachine.Render
 import GraphStateMachine.StateMachine
 
-data LockDoorState
+data LockDoorTag
   = IsLockOpen
   | IsLockClosed
   | IsLockLocked
@@ -42,12 +43,12 @@ data LockDoorEvent
   | LockLocked
   | LockUnlocked
 
-data SLockDoorState state where
-  SIsLockOpen   :: SLockDoorState 'IsLockOpen
-  SIsLockClosed :: SLockDoorState 'IsLockClosed
-  SIsLockLocked :: SLockDoorState 'IsLockLocked
+data LockDoorState (state :: LockDoorTag) where
+  SIsLockOpen   :: LockDoorState 'IsLockOpen
+  SIsLockClosed :: LockDoorState 'IsLockClosed
+  SIsLockLocked :: LockDoorState 'IsLockLocked
 
-lockDoorMachine :: StateMachine LockDoorTopology SLockDoorState LockDoorCommand LockDoorEvent
+lockDoorMachine :: StateMachine LockDoorTopology LockDoorState LockDoorCommand LockDoorEvent
 lockDoorMachine = MkStateMachine
   { initialState = MkInitialState SIsLockClosed
   , action       = \case

@@ -31,7 +31,7 @@ spec =
     describe "RenderTopology" $ do
       it "should render the trivial topology" $ do
         asGraph @_ @TrivialTopology `shouldBe` MkGraph
-          [ (OnlyValidState, OnlyValidState)
+          [ (OnlyValidTag, OnlyValidTag)
           ]
 
       it "should render the topology of the Door state machine" $ do
