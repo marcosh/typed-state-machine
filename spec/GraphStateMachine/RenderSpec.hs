@@ -5,7 +5,7 @@ module GraphStateMachine.RenderSpec where
 
 import GraphStateMachine.Door
 import GraphStateMachine.LockDoor
-import GraphStateMachine.OneStateExample
+import GraphStateMachine.Example.Trivial
 import GraphStateMachine.Render
 
 -- hspec
@@ -31,7 +31,7 @@ spec =
     describe "RenderTopology" $ do
       it "should render the trivial topology" $ do
         asGraph @_ @TrivialTopology `shouldBe` MkGraph
-          [ (OnlyValidTag, OnlyValidTag)
+          [ (OnlyTag, OnlyTag)
           ]
 
       it "should render the topology of the Door state machine" $ do
