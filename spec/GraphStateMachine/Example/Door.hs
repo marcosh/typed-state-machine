@@ -3,7 +3,6 @@
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
