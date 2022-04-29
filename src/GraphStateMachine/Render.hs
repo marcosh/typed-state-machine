@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,6 +17,9 @@ module GraphStateMachine.Render where
 
 import GraphStateMachine.StateMachine
 
+-- singletons
+import Data.Singletons
+
 -- text
 import Data.Text
 
@@ -28,17 +32,14 @@ renderMermaid (MkGraph l)
   =  "stateDiagram-v2\n"
   <> foldMap (\(a1, a2) -> pack (show a1) <> " --> " <> pack (show a2) <> "\n") l
 
-class ToValue (a :: k) where
-  toValue :: k
+class DemoteList (a :: [k]) where
+  demoteList :: [k]
 
-class ToListValue (a :: [k]) where
-  toListValue :: [k]
+instance DemoteList '[] where
+  demoteList = []
 
-instance ToListValue '[] where
-  toListValue = []
-
-instance (ToValue a, ToListValue as) => ToListValue (a ': as) where
-  toListValue = toValue @_ @a : toListValue @_ @as
+instance (SingKind k, Demote k ~ k, SingI a, DemoteList as) => DemoteList ((a :: k) ': as) where
+  demoteList = demote @a : demoteList @_ @as
 
 class RenderTopology (t :: Topology v) where
   asGraph :: Graph v
@@ -46,5 +47,5 @@ class RenderTopology (t :: Topology v) where
 instance RenderTopology ('MkTopology '[]) where
   asGraph = MkGraph []
 
-instance (ToValue v, ToListValue vs, RenderTopology ('MkTopology es)) => RenderTopology ('MkTopology ('(v :: k, vs :: [k]) ': (es :: [(k, [k])]))) where
-  asGraph = MkGraph ((toValue @_ @v, ) <$> toListValue @_ @vs) <> asGraph @_ @('MkTopology es)
+instance (SingKind k, Demote k ~ k, SingI v, DemoteList vs, RenderTopology ('MkTopology es)) => RenderTopology ('MkTopology ('(v :: k, vs :: [k]) ': (es :: [(k, [k])]))) where
+  asGraph = MkGraph ((demote @v, ) <$> demoteList @_ @vs) <> asGraph @_ @('MkTopology es)
