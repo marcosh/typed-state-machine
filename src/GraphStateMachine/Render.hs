@@ -50,4 +50,5 @@ instance RenderTopology ('MkTopology '[]) where
 instance (SingKind k, Demote k ~ k, SingI v, DemoteList vs, RenderTopology ('MkTopology es)) => RenderTopology ('MkTopology ('(v :: k, vs :: [k]) ': (es :: [(k, [k])]))) where
   topologyAsGraph = MkGraph ((demote @v, ) <$> demoteList @_ @vs) <> topologyAsGraph @_ @('MkTopology es)
 
-class RenderStateMachine
+stateMachineAsGraph :: forall tag topology state input output. RenderTopology topology => StateMachine (topology :: Topology tag) state input output -> Graph tag
+stateMachineAsGraph _ = topologyAsGraph @_ @topology
