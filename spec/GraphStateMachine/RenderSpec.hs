@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
 
 module GraphStateMachine.RenderSpec where
 
 import GraphStateMachine.Example.Counter
 import GraphStateMachine.Example.Door
 import GraphStateMachine.Example.LockDoor
+import GraphStateMachine.Example.RiskManager
 import GraphStateMachine.Example.Trivial
 import GraphStateMachine.Render
 
@@ -59,6 +59,20 @@ spec =
           , (IsLockLocked, IsLockClosed)
           ]
 
+      it "should render the topology of the RiskManager state machine" $ do
+        topologyAsGraph riskTopology `shouldBe` MkGraph
+          [ (NoDataTag, NoDataTag)
+          , (NoDataTag, CollectedUserDataTag)
+          , (CollectedUserDataTag, CollectedUserDataTag)
+          , (CollectedUserDataTag, CollectedLoanDetailsFirstTag)
+          , (CollectedUserDataTag, ReceivedCreditBureauDataFirstTag)
+          , (CollectedLoanDetailsFirstTag, CollectedLoanDetailsFirstTag)
+          , (CollectedLoanDetailsFirstTag, CollectedAllDataTag)
+          , (ReceivedCreditBureauDataFirstTag, ReceivedCreditBureauDataFirstTag)
+          , (ReceivedCreditBureauDataFirstTag, CollectedAllDataTag)
+          , (CollectedAllDataTag, CollectedAllDataTag)
+          ]
+
     describe "stateMachineAsGraph" $ do
       it "should render the trivial state machine" $ do
         stateMachineAsGraph constantMachine `shouldBe` MkGraph
@@ -87,4 +101,18 @@ spec =
           , (IsLockClosed, IsLockLocked)
           , (IsLockLocked, IsLockLocked)
           , (IsLockLocked, IsLockClosed)
+          ]
+
+      it "should render the RiskManager state machine" $ do
+        stateMachineAsGraph riskMachine `shouldBe` MkGraph
+          [ (NoDataTag, NoDataTag)
+          , (NoDataTag, CollectedUserDataTag)
+          , (CollectedUserDataTag, CollectedUserDataTag)
+          , (CollectedUserDataTag, CollectedLoanDetailsFirstTag)
+          , (CollectedUserDataTag, ReceivedCreditBureauDataFirstTag)
+          , (CollectedLoanDetailsFirstTag, CollectedLoanDetailsFirstTag)
+          , (CollectedLoanDetailsFirstTag, CollectedAllDataTag)
+          , (ReceivedCreditBureauDataFirstTag, ReceivedCreditBureauDataFirstTag)
+          , (ReceivedCreditBureauDataFirstTag, CollectedAllDataTag)
+          , (CollectedAllDataTag, CollectedAllDataTag)
           ]
