@@ -49,8 +49,8 @@ data LockDoorEvent
   | LockLocked
   | LockUnlocked
 
-singLockDoorMachine :: StateMachine LockDoorTopology SLockDoorTag LockDoorCommand LockDoorEvent
-singLockDoorMachine =  MkStateMachine
+lockDoorMachine :: StateMachine LockDoorTopology SLockDoorTag LockDoorCommand LockDoorEvent
+lockDoorMachine =  MkStateMachine
   { initialState = MkInitialState SIsLockClosed
   , action       = \case
       SIsLockOpen   -> \case

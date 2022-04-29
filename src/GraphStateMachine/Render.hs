@@ -1,17 +1,12 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators #-}
 
 module GraphStateMachine.Render where
 
@@ -32,23 +27,19 @@ renderMermaid (MkGraph l)
   =  "stateDiagram-v2\n"
   <> foldMap (\(a1, a2) -> pack (show a1) <> " --> " <> pack (show a2) <> "\n") l
 
-class DemoteList (a :: [k]) where
-  demoteList :: [k]
+-- Render a topology
 
-instance DemoteList '[] where
-  demoteList = []
+topologyAsGraph :: Topology v -> Graph v
+topologyAsGraph (MkTopology edges') = MkGraph $ edges' >>= edgify
+  where
+    edgify :: (v, [v]) -> [(v, v)]
+    edgify (v, vs) = (v, ) <$> vs
 
-instance (SingKind k, Demote k ~ k, SingI a, DemoteList as) => DemoteList ((a :: k) ': as) where
-  demoteList = demote @a : demoteList @_ @as
+-- directly render a graph
 
-class RenderTopology (t :: Topology v) where
-  topologyAsGraph :: Graph v
-
-instance RenderTopology ('MkTopology '[]) where
-  topologyAsGraph = MkGraph []
-
-instance (SingKind k, Demote k ~ k, SingI v, DemoteList vs, RenderTopology ('MkTopology es)) => RenderTopology ('MkTopology ('(v :: k, vs :: [k]) ': (es :: [(k, [k])]))) where
-  topologyAsGraph = MkGraph ((demote @v, ) <$> demoteList @_ @vs) <> topologyAsGraph @_ @('MkTopology es)
-
-stateMachineAsGraph :: forall tag topology state input output. RenderTopology topology => StateMachine (topology :: Topology tag) state input output -> Graph tag
-stateMachineAsGraph _ = topologyAsGraph @_ @topology
+stateMachineAsGraph
+  :: forall tag topology state input output
+  .  (Demote (Topology tag) ~ Topology tag, SingKind tag, SingI topology)
+  => StateMachine (topology :: Topology tag) state input output
+  -> Graph tag
+stateMachineAsGraph _ = topologyAsGraph (demote @topology)
