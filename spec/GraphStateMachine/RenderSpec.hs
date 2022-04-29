@@ -3,8 +3,9 @@
 
 module GraphStateMachine.RenderSpec where
 
-import GraphStateMachine.Door
-import GraphStateMachine.LockDoor
+import GraphStateMachine.Example.Counter
+import GraphStateMachine.Example.Door
+import GraphStateMachine.Example.LockDoor
 import GraphStateMachine.Example.Trivial
 import GraphStateMachine.Render
 
@@ -30,12 +31,17 @@ spec =
 
     describe "RenderTopology" $ do
       it "should render the trivial topology" $ do
-        asGraph @_ @TrivialTopology `shouldBe` MkGraph
+        topologyAsGraph @_ @TrivialTopology `shouldBe` MkGraph
           [ (OnlyTag, OnlyTag)
           ]
 
+      it "should render the counter topology" $ do
+        topologyAsGraph @_ @CounterTopology `shouldBe` MkGraph
+          [ (OnlyCounterTag, OnlyCounterTag)
+          ]
+
       it "should render the topology of the Door state machine" $ do
-        asGraph @_ @DoorTopology `shouldBe` MkGraph
+        topologyAsGraph @_ @DoorTopology `shouldBe` MkGraph
           [ (IsClosed, IsClosed)
           , (IsClosed, IsOpen)
           , (IsOpen  , IsClosed)
@@ -43,7 +49,7 @@ spec =
           ]
 
       it "should render the topology of the LockDoor state machine" $ do
-        asGraph @_ @LockDoorTopology `shouldBe` MkGraph
+        topologyAsGraph @_ @LockDoorTopology `shouldBe` MkGraph
           [ (IsLockOpen  , IsLockOpen)
           , (IsLockOpen  , IsLockClosed)
           , (IsLockClosed, IsLockClosed)

@@ -42,10 +42,12 @@ instance (SingKind k, Demote k ~ k, SingI a, DemoteList as) => DemoteList ((a ::
   demoteList = demote @a : demoteList @_ @as
 
 class RenderTopology (t :: Topology v) where
-  asGraph :: Graph v
+  topologyAsGraph :: Graph v
 
 instance RenderTopology ('MkTopology '[]) where
-  asGraph = MkGraph []
+  topologyAsGraph = MkGraph []
 
 instance (SingKind k, Demote k ~ k, SingI v, DemoteList vs, RenderTopology ('MkTopology es)) => RenderTopology ('MkTopology ('(v :: k, vs :: [k]) ': (es :: [(k, [k])]))) where
-  asGraph = MkGraph ((demote @v, ) <$> demoteList @_ @vs) <> asGraph @_ @('MkTopology es)
+  topologyAsGraph = MkGraph ((demote @v, ) <$> demoteList @_ @vs) <> topologyAsGraph @_ @('MkTopology es)
+
+class RenderStateMachine

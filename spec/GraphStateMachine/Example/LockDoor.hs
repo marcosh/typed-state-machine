@@ -1,24 +1,40 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module GraphStateMachine.LockDoor where
+module GraphStateMachine.Example.LockDoor where
 
 import GraphStateMachine.StateMachine
 
-data LockDoorTag
-  = IsLockOpen
-  | IsLockClosed
-  | IsLockLocked
-  deriving stock (Eq, Show)
+-- singletons-base
+import Data.Singletons.Base.TH
 
-type LockDoorTopology = 'MkTopology
-  '[ '( 'IsLockOpen  , '[ 'IsLockOpen  , 'IsLockClosed ])
-   , '( 'IsLockClosed, '[ 'IsLockClosed, 'IsLockOpen, 'IsLockLocked ])
-   , '( 'IsLockLocked, '[ 'IsLockLocked, 'IsLockClosed ])
-   ]
+$(singletons [d|
+
+  data LockDoorTag
+    = IsLockOpen
+    | IsLockClosed
+    | IsLockLocked
+    deriving stock (Eq, Show)
+
+  lockDoorTopology :: Topology LockDoorTag
+  lockDoorTopology = MkTopology
+    [ (IsLockOpen  , [IsLockOpen, IsLockClosed])
+    , (IsLockClosed, [IsLockClosed, IsLockOpen, IsLockLocked])
+    , (IsLockLocked, [IsLockLocked, IsLockClosed])
+    ]
+
+  |])
 
 data LockDoorCommand
   = LockOpen
@@ -33,13 +49,8 @@ data LockDoorEvent
   | LockLocked
   | LockUnlocked
 
-data LockDoorState (state :: LockDoorTag) where
-  SIsLockOpen   :: LockDoorState 'IsLockOpen
-  SIsLockClosed :: LockDoorState 'IsLockClosed
-  SIsLockLocked :: LockDoorState 'IsLockLocked
-
-lockDoorMachine :: StateMachine LockDoorTopology LockDoorState LockDoorCommand LockDoorEvent
-lockDoorMachine = MkStateMachine
+singLockDoorMachine :: StateMachine LockDoorTopology SLockDoorTag LockDoorCommand LockDoorEvent
+singLockDoorMachine =  MkStateMachine
   { initialState = MkInitialState SIsLockClosed
   , action       = \case
       SIsLockOpen   -> \case
