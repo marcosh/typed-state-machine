@@ -19,6 +19,4 @@ The aims of this projects are:
 
 - [] in the topology I need to manually define that I might not change state
 - [] a state machine has a `state` parameter, which might possibly be removed
-- [] is there a way to avoid defining `LockDoorState` and `SLockDoorState` when not using singletons
 - [] let inputs and outputs depend on state
-- [] generate a graph from a state machine type
