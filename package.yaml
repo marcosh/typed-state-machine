@@ -1,7 +1,9 @@
 name:               typed-state-machine
 version:            0.1.0.0
 author:             Marco Perone
-maintainer:         pasafama@gmail.com
+maintainer:         marco.perone@tweag.io
+copyright:          2022 Tweag I/O
+license:            OtherLicense
 extra-source-files:
   - README.md
 
