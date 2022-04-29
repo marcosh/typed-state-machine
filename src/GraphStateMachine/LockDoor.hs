@@ -6,7 +6,6 @@
 
 module GraphStateMachine.LockDoor where
 
-import GraphStateMachine.Render
 import GraphStateMachine.StateMachine
 
 data LockDoorTag
@@ -14,15 +13,6 @@ data LockDoorTag
   | IsLockClosed
   | IsLockLocked
   deriving stock (Eq, Show)
-
-instance ToValue 'IsLockOpen where
-  toValue = IsLockOpen
-
-instance ToValue 'IsLockClosed where
-  toValue = IsLockClosed
-
-instance ToValue 'IsLockLocked where
-  toValue = IsLockLocked
 
 type LockDoorTopology = 'MkTopology
   '[ '( 'IsLockOpen  , '[ 'IsLockOpen  , 'IsLockClosed ])
